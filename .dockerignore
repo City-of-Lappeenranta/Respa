@@ -1,0 +1,4 @@
+
+*.pyc
+celerybeat.pid
+celerybeat-schedule*

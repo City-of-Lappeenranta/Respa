@@ -1,0 +1,28 @@
+version: '3'
+services:
+   postgis:
+       # image: mdillon/postgis
+       image: skywidesoft/postgres-hstore-postgis
+       environment:
+           POSTGRES_USER: respa
+           POSTGRES_PASSWORD: respa
+           POSTGRES_DB: respa
+       volumes:
+           - postgis-data-volume:/var/lib/postgresql/data
+       container_name: respa-db
+   django:
+       build: .
+#        command: bash -c 'tail -f /dev/null'
+       volumes:
+           - .:/code
+#           - django-media-volume:/var/media/
+           - django-media-volume:/usr/src/app/media/
+       ports:
+           - "8004:8000"
+       depends_on:
+           - postgis
+       container_name: respa-backend
+
+volumes:
+       postgis-data-volume:
+       django-media-volume:
