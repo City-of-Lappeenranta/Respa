@@ -1,0 +1,25 @@
+{% extends "admin/login.html" %}
+{% load static %}
+
+{% block content %}
+{% if helsinki_provider_installed %}
+<div id="helsinki-login"{% if grappelli_installed %} style="display: none;"{% endif %}>
+    <p>
+        Jos sinulla on erilliset ylläpitotunnukset, kirjaudu sisään käyttäjätunnuksella
+        ja salasanalla.
+    </p>
+</div>
+{% endif %}
+{{ block.super }}
+{% if grappelli_installed %}
+<script type="text/javascript">
+(function() {
+    var $ = grp.jQuery;
+    $el = $("#helsinki-login");
+    $el.addClass('form-row grp-row');
+    $el.prependTo($('div.module')).show();
+})();
+</script>
+{% endif %}
+
+{% endblock %}

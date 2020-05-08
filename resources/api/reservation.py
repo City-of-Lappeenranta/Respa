@@ -410,7 +410,7 @@ class CanApproveFilterBackend(filters.BaseFilterBackend):
 class ReservationFilterSet(django_filters.rest_framework.FilterSet):
     class Meta:
         model = Reservation
-        fields = ('event_subject', 'host_name', 'reserver_name', 'resource_name', 'is_favorite_resource', 'unit')
+        fields = ('event_subject', 'manual_price', 'host_name', 'reserver_name', 'resource_name', 'is_favorite_resource', 'unit')
 
     @property
     def qs(self):
@@ -429,6 +429,7 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
         return qs
 
     event_subject = django_filters.CharFilter(lookup_expr='icontains')
+    manual_price = django_filters.CharFilter(lookup_expr='icontains')
     host_name = django_filters.CharFilter(lookup_expr='icontains')
     reserver_name = django_filters.CharFilter(lookup_expr='icontains')
     resource_name = django_filters.CharFilter(name='resource', lookup_expr='name__icontains')
@@ -564,6 +565,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         instance = serializer.save(**override_data)
 
         resource = serializer.validated_data['resource']
+        manual_price = self.request.data.get('manual_price')
         staff_event = (self.request.data.get('staff_event', False) and
                        resource.can_approve_reservations(self.request.user))
         if resource.need_manual_confirmation and not staff_event:
@@ -571,14 +573,17 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         else:
             new_state = Reservation.CONFIRMED
 
+        # Write staff_event flag to reservation object
+        instance.staff_event = staff_event
+        instance.save()
+
         instance.set_state(new_state, self.request.user)
 
         from lpr_purchase.models.purchase import Purchase
-
-        if resource.ceepos_payment_required and resource.product_code and new_state != Reservation.REQUESTED:
+        if resource.ceepos_payment_required and resource.product_code and new_state != Reservation.REQUESTED and not staff_event:
             # If payment is required, we create a new Payment object
             p = Purchase.objects.create( purchase_code = resource.product_code,\
-                                         price_vat = float(resource.min_price_per_hour) * (instance.end - instance.begin).total_seconds() / 3600 )
+                                     price_vat = float(resource.min_price_per_hour) * (instance.end - instance.begin).total_seconds() / 3600 )
             p.request_payment()
             instance.set_purchase(p)
 

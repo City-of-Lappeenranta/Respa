@@ -14,5 +14,9 @@ app.conf.beat_schedule = {
     'remove_unpaid_reservations': {
         'task': 'lpr_purchase.tasks.remove_unpaid_reservations',
         'schedule': crontab(minute='*/1')
+    },
+    'generate_reservation_report': {
+        'task': 'lpr_purchase.tasks.generate_reservation_report',
+        'schedule': crontab(minute='*/1') # TESTING: run every minute
     }
 }

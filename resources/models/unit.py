@@ -42,8 +42,6 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     www_url = models.URLField(verbose_name=_('WWW link'), max_length=400, null=True, blank=True)
     address_postal_full = models.CharField(verbose_name=_('Full postal address'), max_length=100,
                                            null=True, blank=True)
-    municipality = models.ForeignKey(Municipality, null=True, blank=True, verbose_name=_('Municipality'),
-                                     on_delete=models.SET_NULL)
 
     picture_url = models.URLField(verbose_name=_('Picture URL'), max_length=200,
                                   null=True, blank=True)

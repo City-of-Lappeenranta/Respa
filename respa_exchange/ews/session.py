@@ -1,8 +1,11 @@
+import json
+
 import logging
 
 import requests
 from lxml import etree
 from requests_ntlm import HttpNtlmAuth
+from requests.auth import HTTPBasicAuth
 
 from .xml import NAMESPACES
 
@@ -42,7 +45,8 @@ class ExchangeSession(requests.Session):
     def __init__(self, url, username, password):
         super(ExchangeSession, self).__init__()
         self.url = url
-        self.auth = HttpNtlmAuth(username, password)
+        # self.auth = HttpNtlmAuth(username, password)
+        self.auth = HTTPBasicAuth(username, password)
         self.log = logging.getLogger("ExchangeSession")
 
     def _prepare_soap(self, request):
@@ -67,6 +71,7 @@ class ExchangeSession(requests.Session):
         :type timeout: float|None|tuple[float, float]
         :rtype: lxml.etree.Element
         """
+
         resp = self.post(self.url, timeout=timeout, **self._prepare_soap(request))
         if resp.status_code == 500:
             try:

@@ -21,7 +21,7 @@ def _build_subject(res):
     if res.event_subject:
         return res.event_subject
 
-    bits = ["Respa"]
+    bits = ["Varaamo"]
     if res.reserver_name:
         bits.append(res.reserver_name)
     elif res.user_id:

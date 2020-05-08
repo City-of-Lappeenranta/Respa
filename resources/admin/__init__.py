@@ -132,7 +132,26 @@ class ResourceEquipmentAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin
 
 class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ExtraReadonlyFieldsOnUpdateMixin,
                        admin.ModelAdmin):
-    extra_readonly_fields_on_update = ('access_code',)
+    extra_readonly_fields_on_update = ('access_code', 'created_at', )
+    list_display = ['resource', 'begin', 'end', 'get_status', 'get_success', 'get_failure', 'created_at']
+    list_filter = ('resource', 'begin', 'end', 'created_at')
+    list_select_related = ('purchase',)
+    ordering = ('created_at', 'resource')
+
+    def get_status(self, obj):
+        if obj.purchase:
+            return obj.purchase.status
+    def get_success(self, obj):
+        if obj.purchase:
+            return obj.purchase.purchase_process_success
+    def get_failure(self, obj):
+        if obj.purchase:
+            return obj.purchase.purchase_process_failure
+
+    get_status.short_description = 'Status'
+    get_success.short_description = 'Success'
+    get_failure.short_description = 'Failure'
+
 
 
 class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):

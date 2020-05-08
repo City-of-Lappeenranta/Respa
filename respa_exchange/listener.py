@@ -87,7 +87,8 @@ class EventAwaiterThread(threading.Thread):
             except Exception:  # pragma: no cover
                 log.exception('Error in %s' % self)
                 failures += 1
-                if failures >= 5:
+                # 20200114 sleeping blocks sync, set limit to 2
+                if failures >= 2:
                     log.warn('Killing off %s, too many failures', self)
                     self.please_stop = True
                 # For each failure, sleep a while so that we don't end up

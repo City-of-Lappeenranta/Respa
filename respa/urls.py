@@ -16,7 +16,8 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.conf import settings
 from django.conf.urls.static import static
-from helusers import admin
+# from helusers import admin
+from django.contrib import admin
 from django.views.generic.base import RedirectView
 
 from resources.api import RespaAPIRouter
@@ -25,6 +26,8 @@ from resources.views.ical import ICalFeedView
 from resources.views import testing as testing_views
 
 admin.autodiscover()
+
+admin.site.login_template = "lpr_login.html"
 
 if getattr(settings, 'RESPA_COMMENTS_ENABLED', False):
     import comments.api

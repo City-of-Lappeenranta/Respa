@@ -50,9 +50,11 @@ class Command(BaseCommand):
                 logger.info("Stopping listener")
                 listener.close()
 
-            daemon = Daemonize(app='respa_exchange_listen', pid=pid_file, action=run_listener,
-                               logger=logger, **kwargs)
-            daemon.start()
+            run_listener()
+
+            # daemon = Daemonize(app='respa_exchange_listen', pid=pid_file, action=run_listener,
+            #                    logger=logger, **kwargs)
+            # daemon.start()
         else:
             pid_file = options.get('pid_file')
             if pid_file:

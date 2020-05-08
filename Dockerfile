@@ -19,4 +19,9 @@ COPY . .
 RUN pip-compile --output-file requirements_local.txt requirements_local.in
 RUN pip install -r requirements_local.txt
 
+# Initialize exchange sync
+COPY respa_exchange/supervisord.conf /etc/
+RUN mkdir /exchange_sync
+RUN pip install supervisor
+
 CMD service rabbitmq-server start && deploy/server.sh

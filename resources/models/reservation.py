@@ -2,6 +2,7 @@
 import logging
 import datetime
 import pytz
+import environ
 
 from django.utils import timezone
 import django.contrib.postgres.fields as pgfields
@@ -34,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
                             'reserver_address_city', 'billing_address_street', 'billing_address_zip',
-                            'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
+                            'billing_address_city', 'company', 'event_description', 'event_subject', 'manual_price', 'reserver_id',
                             'number_of_participants', 'participants', 'reserver_email_address', 'host_name')
 
 
@@ -113,6 +114,7 @@ class Reservation(ModifiableModel):
 
     purchase = models.OneToOneField(Purchase, related_name="reservation", verbose_name=_('Purchase'), db_index=True, blank=True, null=True, on_delete=models.SET_NULL)
 
+    staff_event = models.BooleanField(default=False, verbose_name=_('Staff event'))
 
     # access-related fields
     access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)
@@ -120,6 +122,7 @@ class Reservation(ModifiableModel):
     # EXTRA FIELDS START HERE
 
     event_subject = models.CharField(max_length=200, verbose_name=_('Event subject'), blank=True)
+    manual_price = models.CharField(max_length=30, verbose_name=_('Manual price'), blank=True)
     event_description = models.TextField(verbose_name=_('Event description'), blank=True)
     number_of_participants = models.PositiveSmallIntegerField(verbose_name=_('Number of participants'), blank=True,
                                                               null=True)
@@ -251,12 +254,15 @@ class Reservation(ModifiableModel):
 
         if new_state == Reservation.REQUESTED:
             self.send_reservation_requested_mail()
-            self.send_reservation_requested_mail_to_officials()
+            # self.send_reservation_requested_mail_to_officials()
         elif new_state == Reservation.CONFIRMED:
             # If a payment is required, await for purchase to complete before sending confirmation mail
-            if self.resource.ceepos_payment_required and self.resource.product_code and not self.purchase and self.resource.need_manual_confirmation:
-                logging.getLogger(__name__).warn("Creating new Purchase for reservation {}".format(self.id))
-                p = Purchase.objects.create(purchase_code = self.resource.product_code, \
+            if self.resource.ceepos_payment_required and self.resource.product_code and not self.purchase and self.resource.need_manual_confirmation and not self.staff_event:
+                if self.manual_price != '':
+                    p = Purchase.objects.create(purchase_code = self.resource.product_code,\
+                                             price_vat = float(self.manual_price))
+                else :
+                    p = Purchase.objects.create(purchase_code = self.resource.product_code, \
                                             price_vat = float(self.resource.min_price_per_hour) * (self.end - self.begin).total_seconds() / 3600)
                 p.request_payment()
                 self.set_purchase(p)
@@ -371,6 +377,11 @@ class Reservation(ModifiableModel):
                 'reserver_phone_number': self.reserver_phone_number,
                 'reserver_email_address' : self.user,
                 'event_subject': self.event_subject,
+<<<<<<< HEAD
+                'manual_price': self.manual_price,
+=======
+>>>>>>> 5dac52753054849f801cf02a6b9ca0152b8e1c1e
+                'reservation_link': settings.ROOT_HOST + '/admin/resources/reservation/' + str(self.id) + '/change/',
             }
             if self.resource.need_manual_confirmation:
                 context['manual_confirmation'] = Resource._meta.get_field('need_manual_confirmation').verbose_name
