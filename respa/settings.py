@@ -15,6 +15,7 @@ env = environ.Env(
     DEBUG=(bool, False),
     SECRET_KEY=(str, ''),
     ALLOWED_HOSTS=(list, []),
+    ROOT_HOST=(str, ''),
     ADMINS=(list, []),
     DATABASE_URL=(str, 'postgis:///respa'),
     JWT_SECRET_KEY=(str, ''),

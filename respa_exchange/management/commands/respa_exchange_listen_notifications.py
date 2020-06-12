@@ -23,7 +23,9 @@ class Command(BaseCommand):
         log_handler = None
         log_file = options.get('log_file')
         if log_file is not None:
-            log_handler = logging.FileHandler(log_file)
+            # Create a new log file every 30 days
+            log_handler = logging.handlers.TimedRotatingFileHandler(log_file, when='D', interval=30)
+            log_handler.suffix = '%Y%m%d'
         if verbosity >= 3:
             configure_logging(level=logging.DEBUG, handler=log_handler)
             configure_logging(level=logging.DEBUG, logger='ExchangeSession', handler=log_handler)
@@ -50,11 +52,9 @@ class Command(BaseCommand):
                 logger.info("Stopping listener")
                 listener.close()
 
-            run_listener()
-
-            # daemon = Daemonize(app='respa_exchange_listen', pid=pid_file, action=run_listener,
-            #                    logger=logger, **kwargs)
-            # daemon.start()
+            daemon = Daemonize(app='respa_exchange_listen', pid=pid_file, action=run_listener,
+                               logger=logger, **kwargs)
+            daemon.start()
         else:
             pid_file = options.get('pid_file')
             if pid_file:

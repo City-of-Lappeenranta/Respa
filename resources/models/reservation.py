@@ -377,10 +377,7 @@ class Reservation(ModifiableModel):
                 'reserver_phone_number': self.reserver_phone_number,
                 'reserver_email_address' : self.user,
                 'event_subject': self.event_subject,
-<<<<<<< HEAD
                 'manual_price': self.manual_price,
-=======
->>>>>>> 5dac52753054849f801cf02a6b9ca0152b8e1c1e
                 'reservation_link': settings.ROOT_HOST + '/admin/resources/reservation/' + str(self.id) + '/change/',
             }
             if self.resource.need_manual_confirmation:

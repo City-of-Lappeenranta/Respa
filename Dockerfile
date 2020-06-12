@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 ENV APP_NAME respa
 
-RUN apt-get update && apt-get install -y libgdal20 postgresql-client-9.6 rabbitmq-server
+RUN apt-get update && apt-get install -y libgdal20 postgresql-client rabbitmq-server
 
 # We downgrade pip, since versions 10+ break dependency resolution in pip-compile
 RUN python -m pip install pip==9.0.3
@@ -19,9 +19,8 @@ COPY . .
 RUN pip-compile --output-file requirements_local.txt requirements_local.in
 RUN pip install -r requirements_local.txt
 
-# Initialize exchange sync
-COPY respa_exchange/supervisord.conf /etc/
+# Create Exchange sync folders
 RUN mkdir /exchange_sync
-RUN pip install supervisor
+RUN mkdir /exchange_sync/logs
 
 CMD service rabbitmq-server start && deploy/server.sh

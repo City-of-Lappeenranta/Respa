@@ -42,3 +42,4 @@ django-reversion
 daemonize
 django-environ
 celery
+sentry-sdk

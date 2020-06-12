@@ -37,7 +37,7 @@ django-mptt==0.8.7        # via django-munigeo
 django-munigeo==0.2.0
 django-parler==1.8.1
 django-reversion==2.0.11
-django==1.11.11
+django==1.11.29
 djangorestframework-jwt==1.11.0
 djangorestframework==3.7.3
 drf-oidc-auth==0.9        # via django-helusers
@@ -54,7 +54,7 @@ iso8601==0.1.12
 jinja2==2.10
 kombu==4.2.1              # via celery
 lxml==4.1.1
-markupsafe==1.0           # via jinja2
+markupsafe==1.1.1           # via jinja2
 mccabe==0.6.1             # via flake8
 ntlm-auth==1.0.6          # via requests-ntlm
 oauthlib==2.0.6           # via requests-oauthlib
@@ -83,6 +83,7 @@ requests-cache==0.4.13    # via django-munigeo
 requests-ntlm==1.1.0
 requests-oauthlib==0.8.0  # via django-allauth
 requests==2.18.4
+sentry-sdk==0.14.1
 six==1.11.0
 tzlocal==1.5.1            # via delorean
 urllib3==1.22             # via requests

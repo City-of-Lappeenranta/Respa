@@ -1,11 +1,11 @@
-import json
-
 import logging
 
 import requests
+from http.client import IncompleteRead
 from lxml import etree
-from requests_ntlm import HttpNtlmAuth
+from requests.packages.urllib3.util.retry import Retry
 from requests.auth import HTTPBasicAuth
+from requests.adapters import HTTPAdapter
 
 from .xml import NAMESPACES
 
@@ -45,9 +45,22 @@ class ExchangeSession(requests.Session):
     def __init__(self, url, username, password):
         super(ExchangeSession, self).__init__()
         self.url = url
-        # self.auth = HttpNtlmAuth(username, password)
+        # Ntml authentication not supported by O365, so use basic authentication
         self.auth = HTTPBasicAuth(username, password)
         self.log = logging.getLogger("ExchangeSession")
+
+        # Retry the requests a couple of times in case of a connection error.
+        num_retries = 3
+        retry = Retry(
+            total=num_retries,
+            connect=num_retries,
+            read=0,
+            status=0,
+            backoff_factor=0.3,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        self.mount('http://', adapter)
+        self.mount('https://', adapter)
 
     def _prepare_soap(self, request):
         envelope = request.envelop()
@@ -72,7 +85,9 @@ class ExchangeSession(requests.Session):
         :rtype: lxml.etree.Element
         """
 
-        resp = self.post(self.url, timeout=timeout, **self._prepare_soap(request))
+        resp = self.post(
+            self.url, timeout=timeout, **self._prepare_soap(request)
+        )
         if resp.status_code == 500:
             try:
                 self._process_soap_response(resp.content)
@@ -86,11 +101,29 @@ class ExchangeSession(requests.Session):
         Send an EWSRequest by SOAP and stream the response.
         """
         resp = self.post(self.url, timeout=timeout, stream=True, **self._prepare_soap(request))
-        for data in resp.iter_content(chunk_size=None):
-            data = data.strip()
-            if not data:
-                continue
-            yield self._process_soap_response(data)
+        """
+        In the original implementation, data from iter_content was sometimes incomplete, resulting in
+        parsing failure in _process_soap_response.
+        We want to wait that we get the closing tag, </Envelope>, before we parse the response.
+
+        urllib3 that requests uses may sometimes throw http.client.IncompleteRead
+        We want to catch it so that logs are not filled with the stacktrace.
+        """
+        try:
+            resp_data = b''
+            for data in resp.iter_content(chunk_size=None):
+                data = data.strip()
+                if not data:
+                    continue
+                resp_data += data
+                if resp_data.endswith(b'</Envelope>'):
+                    # Only yield if this was the end of the current response
+                    temp_data = resp_data
+                    # Clear resp_data and wait for new message
+                    resp_data = b''
+                    yield self._process_soap_response(temp_data)
+        except IncompleteRead as exception:
+            raise Exception('Incomplete read from urllib3')
 
     def _process_soap_response(self, content):
         if content.count(SOAP_ENVELOPE_TAG) > 1:
