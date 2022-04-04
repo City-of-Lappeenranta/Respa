@@ -4,6 +4,14 @@
 
 respa – Resource reservation and management service
 ===================
+Respa is a backend service for reserving and managing resources (e.g. meeting rooms, equipment, personnel). The open two-way REST API is interoperable with the 6Aika Resource reservation API specification created by the six largest cities in Finland. You can explore the API at api.hel.fi and view the API documentation at dev.hel.fi.
+
+User interfaces for Respa developed for the City of Lappeenranta by Visma Solutions Oy is Varaamo. The City of Helsinki and Hämeenlinna have developed several UIs and backend on top of Respa.
+
+There are two user interfaces for editing data: Admins may use the more powerful Django Admin UI - other users with less privileges may use the more restricted but easier-to-use and nicer-looking Respa Admin UI.
+
+===================
+
 
 Installation
 ------------
